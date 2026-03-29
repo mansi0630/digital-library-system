@@ -32,4 +32,6 @@ If the book is returned after the due date, a fine of ₹10 per day is charged.
 ## How to Run
 1. Install dependencies using npm install  
 2. Run the server using node server.js  
-3. Open index.html in browser  
+3. Open index.html in browser
+
+Note: Data is stored in-memory, so it resets when the server restarts.
