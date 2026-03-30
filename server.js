@@ -1,38 +1,40 @@
 const express = require("express");
-const cors = require("cors");
 
 const app = express();
 
-// JSON data read karne ke liye
 app.use(express.json());
 
-//frontend ko backend access dene ke lie
-app.use(cors());
-
-// temporary arrays
+// Data storage (in-memory)
+let users = [];
 let books = [];
 let borrows = [];
 
-// test route
+// Test route
 app.get("/", (req, res) => {
   res.send("Server is running");
 });
 
-// register API
+// Register API
 app.post("/auth/register", (req, res) => {
-  console.log(req.body);
+  const user = req.body;
+
+  users.push(user);
 
   res.json({
     message: "User registered successfully",
-    data: req.body
+    users: users
   });
 });
 
-// login API
+// Login API (multiple users)
 app.post("/auth/login", (req, res) => {
   const { email, password } = req.body;
 
-  if (email === "mansi6.0097@gmail.com" && password === "123456") {
+  const user = users.find(
+    u => u.email === email && u.password === password
+  );
+
+  if (user) {
     res.json({
       message: "Login successful"
     });
@@ -43,7 +45,7 @@ app.post("/auth/login", (req, res) => {
   }
 });
 
-// add book API
+// Add Book API
 app.post("/books", (req, res) => {
   const book = req.body;
 
@@ -55,12 +57,12 @@ app.post("/books", (req, res) => {
   });
 });
 
-// get all books API
+// Get Books API
 app.get("/books", (req, res) => {
   res.json(books);
 });
 
-// borrow API
+// Borrow API
 app.post("/borrow", (req, res) => {
   const { name, bookTitle, issueDate, dueDate } = req.body;
 
@@ -81,7 +83,7 @@ app.post("/borrow", (req, res) => {
   });
 });
 
-// return book API
+// Return API
 app.post("/borrow/return", (req, res) => {
   const { name, bookTitle, returnDate } = req.body;
 
@@ -116,7 +118,7 @@ app.post("/borrow/return", (req, res) => {
   });
 });
 
-// server start
+// Start server
 app.listen(5000, () => {
   console.log("Server running on port 5000");
 });
