@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Login</title>
+  <title>Register</title>
 
   <style>
     body {
       font-family: Arial;
       text-align: center;
-      background: linear-gradient(to right, #4facfe, #00f2fe);
+      background: linear-gradient(to right, #ff758c, #ff7eb3);
     }
 
     h2 { color: white; }
@@ -22,16 +22,12 @@
 
     button {
       padding: 10px;
-      background: blue;
+      background: purple;
       color: white;
       border: none;
       cursor: pointer;
       border-radius: 5px;
     }
-
-    button:hover { background: darkblue; }
-
-    a { color: white; }
 
     p { color: white; font-weight: bold; }
   </style>
@@ -39,34 +35,34 @@
 
 <body>
 
-<h2>Login</h2>
+<h2>Register</h2>
 
+<input type="text" id="name" placeholder="Name"><br>
 <input type="email" id="email" placeholder="Email"><br>
 <input type="password" id="password" placeholder="Password"><br>
 
-<button onclick="login()">Login</button>
+<button onclick="registerUser()">Register</button>
 
 <p id="result"></p>
 
-<p>Don't have account? <a href="register.html">Register</a></p>
-
 <script>
-async function login() {
+async function registerUser() {
+  const name = document.getElementById("name").value;
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  const res = await fetch("http://localhost:5000/auth/login", {
+  const res = await fetch("http://localhost:5000/auth/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password })
+    body: JSON.stringify({ name, email, password })
   });
 
   const data = await res.json();
   document.getElementById("result").innerText = data.message;
 
-  if (data.message === "Login successful") {
+  if (data.message === "User registered successfully") {
     setTimeout(() => {
-      window.location.href = "home.html";
+      window.location.href = "index.html";
     }, 1000);
   }
 }

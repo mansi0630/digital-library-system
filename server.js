@@ -1,103 +1,87 @@
 const express = require("express");
+const cors = require("cors");
+const sequelize = require("./config/db");
+
+const User = require("./models/User");
+const Book = require("./models/Book");
+const Borrow = require("./models/Borrow");
 
 const app = express();
 
 app.use(express.json());
-
-// Data storage (in-memory)
-let users = [];
-let books = [];
-let borrows = [];
+app.use(cors());
 
 // Test route
 app.get("/", (req, res) => {
   res.send("Server is running");
 });
 
-// Register API
-app.post("/auth/register", (req, res) => {
-  const user = req.body;
+// Register
+app.post("/auth/register", async (req, res) => {
+  const { name, email, password } = req.body;
 
-  users.push(user);
+  await User.create({ name, email, password });
 
-  res.json({
-    message: "User registered successfully",
-    users: users
-  });
+  res.json({ message: "User registered successfully" });
 });
 
-// Login API (multiple users)
-app.post("/auth/login", (req, res) => {
+// Login
+app.post("/auth/login", async (req, res) => {
   const { email, password } = req.body;
 
-  const user = users.find(
-    u => u.email === email && u.password === password
-  );
+  const user = await User.findOne({
+    where: { email, password }
+  });
 
   if (user) {
-    res.json({
-      message: "Login successful"
-    });
+    res.json({ message: "Login successful" });
   } else {
-    res.status(400).json({
-      message: "Invalid credentials"
-    });
+    res.status(400).json({ message: "Invalid credentials" });
   }
 });
 
-// Add Book API
-app.post("/books", (req, res) => {
-  const book = req.body;
+// Add Book
+app.post("/books", async (req, res) => {
+  const { title, author, category } = req.body;
 
-  books.push(book);
+  await Book.create({ title, author, category });
 
-  res.json({
-    message: "Book added successfully",
-    books: books
-  });
+  res.json({ message: "Book added successfully" });
 });
 
-// Get Books API
-app.get("/books", (req, res) => {
+// Get Books
+app.get("/books", async (req, res) => {
+  const books = await Book.findAll();
   res.json(books);
 });
 
-// Borrow API
-app.post("/borrow", (req, res) => {
+// Borrow
+app.post("/borrow", async (req, res) => {
   const { name, bookTitle, issueDate, dueDate } = req.body;
 
-  const borrow = {
+  await Borrow.create({
     name,
     bookTitle,
     issueDate,
     dueDate,
     returnDate: null,
     fine: 0
-  };
-
-  borrows.push(borrow);
-
-  res.json({
-    message: "Book borrowed successfully",
-    borrow
   });
+
+  res.json({ message: "Book borrowed successfully" });
 });
 
-// Return API
-app.post("/borrow/return", (req, res) => {
+// Return
+app.post("/borrow/return", async (req, res) => {
   const { name, bookTitle, returnDate } = req.body;
 
-  const borrow = borrows.find(
-    b => b.name === name && b.bookTitle === bookTitle && b.returnDate === null
-  );
+  const borrow = await Borrow.findOne({
+    where: { name, bookTitle, returnDate: null }
+  });
 
   if (!borrow) {
-    return res.status(404).json({
-      message: "Borrow record not found"
-    });
+    return res.status(404).json({ message: "Borrow record not found" });
   }
-
-  borrow.returnDate = returnDate;
 
   const due = new Date(borrow.dueDate);
   const ret = new Date(returnDate);
@@ -109,13 +93,19 @@ app.post("/borrow/return", (req, res) => {
     fine = lateDays * 10;
   }
 
+  borrow.returnDate = returnDate;
   borrow.fine = fine;
+
+  await borrow.save();
 
   res.json({
     message: "Book returned successfully",
-    fine,
-    borrow
+    fine
   });
+});
+
+sequelize.sync({ force: true }).then(() => {
+  console.log("Tables recreated");
 });
 
 // Start server
